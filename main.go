@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"bitbucket.org/andoco/go-test-waypoints/waypoints"
 	log "github.com/Sirupsen/logrus"
 )
 
@@ -12,5 +13,5 @@ func init() {
 }
 
 func main() {
-	log.WithFields(log.Fields{"animal": "walrus"}).Info("A walrus appears")
+	waypoints.Visit("test-waypoint")
 }

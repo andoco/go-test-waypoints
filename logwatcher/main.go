@@ -2,10 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"gopkg.in/alecthomas/kingpin.v2"
-	"gopkg.in/fsnotify.v1"
 	"log"
 	"os"
+
+	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/fsnotify.v1"
 )
 
 func logModified(ev fsnotify.Event) {
@@ -16,6 +17,7 @@ func logModified(ev fsnotify.Event) {
 
 func decodeLog() {
 	dec := json.NewDecoder(os.Stdin)
+	enc := json.NewEncoder(os.Stdout)
 
 	for {
 		var v map[string]interface{}
@@ -26,8 +28,12 @@ func decodeLog() {
 
 		for k := range v {
 			if k == "waypoint" {
-				log.Println("Found waypoint event")
+				log.Println("Found waypoint event", v[k])
 			}
+		}
+
+		if err := enc.Encode(&v); err != nil {
+			log.Fatal(err)
 		}
 	}
 }
