@@ -29,3 +29,27 @@ func TestAddDuplicate(t *testing.T) {
 		t.Error("Should not add duplicate")
 	}
 }
+
+func TestVisit(t *testing.T) {
+	waypointId := "test-waypoint"
+	Add(waypointId)
+
+	waypoint, ok := waypoints[waypointId]
+	if !ok {
+		t.Error("Should have waypoint")
+	}
+
+	Visit(waypointId)
+
+	if waypoint.Visited != 1 {
+		t.Error("Should increment Visited", waypoint.Visited)
+	}
+}
+
+func TestVisitUnknownWaypoint(t *testing.T) {
+	err := Visit("unknown-waypoint")
+
+	if err == nil {
+		t.Error("Should return error")
+	}
+}
