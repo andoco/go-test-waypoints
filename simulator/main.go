@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"gopkg.in/alecthomas/kingpin.v2"
+
 	"bitbucket.org/andoco/go-test-waypoints/waypoints"
 	log "github.com/Sirupsen/logrus"
 )
@@ -30,6 +32,14 @@ func simulateWaypoints(c <-chan struct{}, wg sync.WaitGroup) {
 }
 
 func main() {
+	var (
+		numWaypoints = kingpin.Arg("num", "The number of waypoints to simulate.").Int()
+	)
+
+	kingpin.Parse()
+
+	log.Info("Simulating %d waypoints", numWaypoints)
+
 	var wg sync.WaitGroup
 
 	c := make(chan struct{})
