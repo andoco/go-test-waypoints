@@ -7,6 +7,8 @@ import (
 
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/fsnotify.v1"
+
+	"bitbucket.org/andoco/go-test-waypoints/beacon"
 )
 
 func logModified(ev fsnotify.Event) {
@@ -29,6 +31,7 @@ func decodeLog() {
 		for k := range v {
 			if k == "waypoint" {
 				log.Println("Found waypoint event", v[k])
+				beacon.Signal(v[k].(string))
 			}
 		}
 
