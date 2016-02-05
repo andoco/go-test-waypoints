@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-reflex -r '\.go$' -- go test ./...
+reflex -c reflex.conf
