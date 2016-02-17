@@ -4,22 +4,40 @@ import (
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 )
 
-func EchoServer(ws *websocket.Conn) {
-	var in []byte
-	if err := websocket.Message.Receive(ws, &in); err != nil {
-		log.Error("Could not receive")
+var upgrader = websocket.Upgrader{}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.WithFields(log.Fields{"error": err}).Error("Could not upgrade http.Request to a websocket")
 		return
 	}
-	log.WithFields(log.Fields{"message": string(in)}).Info("Received beacon message")
+	defer conn.Close()
+
+	for {
+		_, message, err := conn.ReadMessage()
+
+		if err != nil {
+			if websocket.IsCloseError(err) {
+				break
+				log.Info("Websocket closed")
+			} else {
+				log.WithFields(log.Fields{"error": err}).Error("Could not read beacon message from websocket")
+				break
+			}
+		}
+
+		log.WithFields(log.Fields{"message": message}).Info("Received beacon message")
+	}
 }
 
 func main() {
 	log.Info("Hosting websocket for receiving beacon messages")
 
-	http.Handle("/beacon", websocket.Handler(EchoServer))
+	http.HandleFunc("/beacon", handler)
 	err := http.ListenAndServe(":12345", nil)
 	if err != nil {
 		panic("ListenAndServe: " + err.Error())
