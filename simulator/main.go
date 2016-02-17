@@ -19,11 +19,15 @@ func init() {
 	waypoints.SetOutput(os.Stdout)
 }
 
-func simulateWaypoints(c <-chan struct{}, wg sync.WaitGroup) {
-	log.Info("Simulating waypoints")
+func simulateWaypoints(c <-chan struct{}, numWaypoints int, wg sync.WaitGroup) {
+	log.WithFields(log.Fields{"numWaypoints": numWaypoints}).Info("Simulating waypoints")
+
+	for i := 0; i < numWaypoints; i++ {
+		waypoints.Add(fmt.Sprintf("test-waypoint-%d", i))
+	}
 
 	for i := 0; ; i++ {
-		waypoints.Visit(fmt.Sprintf("test-waypoint-%d", i))
+		waypoints.Visit("test-waypoint-0")
 		time.Sleep(1 * time.Second)
 	}
 
@@ -38,14 +42,12 @@ func main() {
 
 	kingpin.Parse()
 
-	log.Info("Simulating %d waypoints", numWaypoints)
-
 	var wg sync.WaitGroup
 
 	c := make(chan struct{})
 
 	wg.Add(1)
-	go simulateWaypoints(c, wg)
+	go simulateWaypoints(c, *numWaypoints, wg)
 
 	wg.Wait()
 }
