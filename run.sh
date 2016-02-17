@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-go-test-waypoints | logwatcher
+beaconwatcher &
+simulator 1 | logwatcher &
