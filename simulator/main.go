@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
-	"sync"
+	"os/signal"
 	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -19,35 +20,51 @@ func init() {
 	waypoints.SetOutput(os.Stdout)
 }
 
-func simulateWaypoints(c <-chan struct{}, numWaypoints int, wg sync.WaitGroup) {
-	log.WithFields(log.Fields{"numWaypoints": numWaypoints}).Info("Simulating waypoints")
+func simulateWaypoints(interrupt <-chan os.Signal, numWaypoints int, numVisits int, done chan struct{}) {
+	log.WithFields(log.Fields{"numWaypoints": numWaypoints, "numVisits": numVisits}).Info("Simulating waypoints")
+
+	defer close(done)
 
 	for i := 0; i < numWaypoints; i++ {
 		waypoints.Add(fmt.Sprintf("test-waypoint-%d", i))
 	}
 
-	for i := 0; ; i++ {
-		waypoints.Visit("test-waypoint-0")
-		time.Sleep(1 * time.Second)
+	visitCount := 0
+	var timeout <-chan time.Time
+	timeout = time.After(1 * time.Second)
+
+	for i := 0; i < numVisits; i++ {
+		select {
+		case <-interrupt:
+			break
+		case <-timeout:
+			timeout = time.After(1 * time.Second)
+			waypoints.Visit(fmt.Sprintf("test-waypoint-%d", int(math.Mod(float64(visitCount), float64(numWaypoints)))))
+			if visitCount == numVisits*numWaypoints {
+				break
+			}
+		}
 	}
 
 	log.Info("Finished simulating waypoints")
-	wg.Done()
 }
 
 func main() {
 	var (
-		numWaypoints = kingpin.Arg("num", "The number of waypoints to simulate.").Int()
+		numWaypoints = kingpin.Arg("num", "The number of waypoints to simulate.").Default("1").Int()
+		numVisits    = kingpin.Arg("visits", "The number of visits to make to each waypoint.").Default("1").Int()
 	)
 
 	kingpin.Parse()
 
-	var wg sync.WaitGroup
+	done := make(chan struct{})
 
-	c := make(chan struct{})
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
 
-	wg.Add(1)
-	go simulateWaypoints(c, *numWaypoints, wg)
+	go simulateWaypoints(interrupt, *numWaypoints, *numVisits, done)
 
-	wg.Wait()
+	<-done
+
+	log.Info("Exiting")
 }
