@@ -77,4 +77,6 @@ func main() {
 	} else {
 		decodeLog()
 	}
+
+	beacon.Close()
 }

@@ -21,7 +21,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		_, message, err := conn.ReadMessage()
 
 		if err != nil {
-			if websocket.IsCloseError(err) {
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 				break
 				log.Info("Websocket closed")
 			} else {
@@ -30,7 +30,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		log.WithFields(log.Fields{"message": message}).Info("Received beacon message")
+		log.WithFields(log.Fields{"message": string(message)}).Info("Received beacon message")
 	}
 }
 
