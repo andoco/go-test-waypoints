@@ -30,23 +30,25 @@ func simulateWaypoints(interrupt <-chan os.Signal, numWaypoints int, numVisits i
 	}
 
 	visitCount := 0
+	totalVisits := numWaypoints * numVisits
 	var timeout <-chan time.Time
 	timeout = time.After(1 * time.Second)
 
-	for i := 0; i < numVisits; i++ {
+	for {
 		select {
 		case <-interrupt:
-			break
+			return
 		case <-timeout:
-			timeout = time.After(1 * time.Second)
 			waypoints.Visit(fmt.Sprintf("test-waypoint-%d", int(math.Mod(float64(visitCount), float64(numWaypoints)))))
-			if visitCount == numVisits*numWaypoints {
-				break
+			visitCount++
+
+			if visitCount == totalVisits {
+				return
 			}
+
+			timeout = time.After(1 * time.Second)
 		}
 	}
-
-	log.Info("Finished simulating waypoints")
 }
 
 func main() {
@@ -65,6 +67,4 @@ func main() {
 	go simulateWaypoints(interrupt, *numWaypoints, *numVisits, done)
 
 	<-done
-
-	log.Info("Exiting")
 }
