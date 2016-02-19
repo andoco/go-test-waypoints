@@ -3,6 +3,7 @@ package waypoints
 import (
 	"errors"
 	"os"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 )
@@ -12,6 +13,13 @@ var log = logrus.New()
 type WaypointState struct {
 	Id      string
 	Visited uint64
+}
+
+type Stamp struct {
+	WaypointId    string
+	CorrelationId string
+	VisitedTime   time.Time
+	Passed        bool
 }
 
 var waypoints map[string]*WaypointState
