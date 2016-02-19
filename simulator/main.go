@@ -20,7 +20,7 @@ func init() {
 	waypoints.SetOutput(os.Stdout)
 }
 
-func simulateWaypoints(interrupt <-chan os.Signal, numWaypoints int, numVisits int, done chan struct{}) {
+func simulateWaypoints(interrupt <-chan os.Signal, numWaypoints int, numVisits int, correlationId string, done chan struct{}) {
 	log.WithFields(log.Fields{"numWaypoints": numWaypoints, "numVisits": numVisits}).Info("Simulating waypoints")
 
 	defer close(done)
@@ -39,7 +39,8 @@ func simulateWaypoints(interrupt <-chan os.Signal, numWaypoints int, numVisits i
 		case <-interrupt:
 			return
 		case <-timeout:
-			waypoints.Visit(fmt.Sprintf("test-waypoint-%d", int(math.Mod(float64(visitCount), float64(numWaypoints)))))
+			waypointId := fmt.Sprintf("test-waypoint-%d", int(math.Mod(float64(visitCount), float64(numWaypoints))))
+			waypoints.Visit(waypointId, correlationId)
 			visitCount++
 
 			if visitCount == totalVisits {
@@ -53,8 +54,9 @@ func simulateWaypoints(interrupt <-chan os.Signal, numWaypoints int, numVisits i
 
 func main() {
 	var (
-		numWaypoints = kingpin.Arg("num", "The number of waypoints to simulate.").Default("1").Int()
-		numVisits    = kingpin.Arg("visits", "The number of visits to make to each waypoint.").Default("1").Int()
+		numWaypoints  = kingpin.Arg("num", "The number of waypoints to simulate.").Default("1").Int()
+		numVisits     = kingpin.Arg("visits", "The number of visits to make to each waypoint.").Default("1").Int()
+		correlationId = kingpin.Arg("correlationId", "The correlation ID to use when visiting waypoints.").Default("1111").String()
 	)
 
 	kingpin.Parse()
@@ -64,7 +66,7 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	go simulateWaypoints(interrupt, *numWaypoints, *numVisits, done)
+	go simulateWaypoints(interrupt, *numWaypoints, *numVisits, *correlationId, done)
 
 	<-done
 }

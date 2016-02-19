@@ -45,17 +45,18 @@ func Add(waypointId string) error {
 }
 
 // Record that the waypoint has been visited by logging a waypoint event.
-func Visit(waypointId string) error {
-	log.WithFields(logrus.Fields{"waypoint": waypointId}).Info("Visiting waypoint")
+func Visit(waypointId string, correlationId string) error {
+	stamp := Stamp{WaypointId: waypointId, CorrelationId: correlationId}
+
+	log.WithFields(logrus.Fields{"waypointStamp": stamp}).Info("Visiting waypoint")
 
 	waypoint, ok := waypoints[waypointId]
 	if !ok {
-		log.WithFields(logrus.Fields{"waypoint": waypointId}).Error("Waypoint not found when visiting waypoint")
+		log.WithFields(logrus.Fields{"waypointStamp": stamp}).Error("Waypoint not found when visiting waypoint")
 		return errors.New("Waypoint not found")
 	}
 
 	waypoint.Visited += 1
-	log.WithFields(logrus.Fields{"waypoint": waypointId, "visited": waypoint.Visited}).Info("Visited waypoint")
 
 	return nil
 }

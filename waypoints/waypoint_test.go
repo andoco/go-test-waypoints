@@ -32,6 +32,7 @@ func TestAddDuplicate(t *testing.T) {
 
 func TestVisit(t *testing.T) {
 	waypointId := "test-waypoint"
+	correlationId := "1111"
 	Add(waypointId)
 
 	waypoint, ok := waypoints[waypointId]
@@ -39,7 +40,7 @@ func TestVisit(t *testing.T) {
 		t.Error("Should have waypoint")
 	}
 
-	Visit(waypointId)
+	Visit(waypointId, correlationId)
 
 	if waypoint.Visited != 1 {
 		t.Error("Should increment Visited", waypoint.Visited)
@@ -47,7 +48,7 @@ func TestVisit(t *testing.T) {
 }
 
 func TestVisitUnknownWaypoint(t *testing.T) {
-	err := Visit("unknown-waypoint")
+	err := Visit("unknown-waypoint", "1111")
 
 	if err == nil {
 		t.Error("Should return error")

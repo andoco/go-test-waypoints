@@ -2,13 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/fsnotify.v1"
 
 	"bitbucket.org/andoco/go-test-waypoints/beacon"
+	log "github.com/Sirupsen/logrus"
 )
 
 func logModified(ev fsnotify.Event) {
@@ -29,9 +29,11 @@ func decodeLog() {
 		}
 
 		for k := range v {
-			if k == "waypoint" {
-				log.Println("Found waypoint event", v[k])
-				beacon.Signal(v[k].(string))
+			if k == "waypointStamp" {
+				tmp, _ := json.Marshal(v[k])
+				str := string(tmp)
+				log.WithFields(log.Fields{"waypointStamp": str}).Info("Found waypoint stamp")
+				beacon.Signal(str)
 			}
 		}
 
