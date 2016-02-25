@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
+
+	"bitbucket.org/andoco/go-test-waypoints/waypoints"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
@@ -30,13 +33,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		log.WithFields(log.Fields{"message": string(message)}).Info("Received beacon message")
+		log.WithFields(log.Fields{"message": string(message)}).Debug("Received beacon message")
+
+		var stamp waypoints.Stamp
+		json.Unmarshal(message, &stamp)
+
+		log.WithFields(log.Fields{"waypointStamp": stamp}).Info("Received waypoint stamp")
 	}
 
 	log.Info("Finished request")
 }
 
 func main() {
+	log.SetLevel(log.DebugLevel)
 	log.Info("Hosting websocket for receiving beacon messages")
 
 	http.HandleFunc("/beacon", handler)
