@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-reflex -c reflex.conf
+reflex -c reflex.conf -e
